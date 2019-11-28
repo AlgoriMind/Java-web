@@ -1,0 +1,45 @@
+body {
+	margin:0;
+	padding:0;
+}
+.bodyBox {
+	padding:1px;
+	width:250px;
+	height:200px;
+	float:right;
+}
+.Box {
+	padding:1px;
+	width:250px;
+	height:200px;
+}
+.timebox {
+	margin:0 auto;
+	padding:1px;
+	width:250px;
+	height:100px;
+}
+.date-dayBox {
+	float:right;
+	width:250px;
+	height:66px;
+}
+.time {
+	color:blue;
+	text-align:center;
+	font-size:30px;
+	margin-top:40px;
+	margin-right:20px;
+	font-weight:bold;
+	font-family:KaiTi;
+	
+}
+.date-day {
+	color:blue;
+	display:inline-block;
+	font-size:25px;
+	font-weight:bold;
+	margin-left:10px;
+	font-family:KaiTi;
+	
+}

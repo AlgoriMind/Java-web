@@ -1,5 +1,7 @@
-<%@page import="java.io.IOException"%>
-<%@ page language="java" import="java.sql.*" contentType="text/html; charset=UTF-8"%>
+<%@ page language="java" import="java.util.*,java.sql.*,java.net.*,java.util.regex.*" contentType="text/html; charset=UTF-8"%>
+<jsp:useBean id="logUser" class="com.information.User" scope="page"></jsp:useBean>
+<jsp:useBean id="userDao" class="com.algorimind.UserDAO" scope="page"></jsp:useBean>
+<jsp:setProperty name="logUser" property="*"></jsp:setProperty>
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,126 +9,31 @@
 <title>数据库</title>
 </head>
 <body>
-	<%!
-		void select(JspWriter out) {
-			try {
-				Class.forName("com.mysql.cj.jdbc.Driver");
-				Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/information?serverTimezone=GMT","root","death65god");
-				String sql = "select * from demo";
-				PreparedStatement statement = con.prepareStatement(sql);
-				ResultSet rs = statement.executeQuery();
-				out.println("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+"账号:" + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + "密码:");
-				while(rs.next()){
-					String number = rs.getString("number");
-					String passwd = rs.getString("passwd");
-					out.println("<br>" + number + "&nbsp;&nbsp;&nbsp;&nbsp;" + passwd);
-				}
-				rs.close();
-				statement.close();
-				con.close();
-				
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		void update(String number,String passwd,JspWriter out) {
-			try {
-				Class.forName("com.mysql.cj.jdbc.Driver");
-				Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/information?serverTimezone=GMT","root","death65god");
-				String sql = "update demo set passwd = '" + passwd + "'where number = " + number + ";";
-				PreparedStatement statement =  connection.prepareStatement(sql);
-				statement.execute();
-				statement.close();
-				connection.close();
-				out.println("账号为" + number + "的密码更新为:" + passwd);			
-			}catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		void insert(String number,String passwd) {
-			try {
-				Class.forName("com.mysql.cj.jdbc.Driver");
-				Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/information?serverTimezone=GMT","root","death65god");
-				String sql = "insert into demo values('" + number + "','" + passwd + "');";
-				PreparedStatement statement =  connection.prepareStatement(sql);
-				statement.execute();
-				statement.close();
-				connection.close();
-			}catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		void delete(String number,JspWriter out) {
-			try {
-				Class.forName("com.mysql.cj.jdbc.Driver");
-				Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/information?serverTimezone=GMT","root","death65god");
-				String sql = "delete from demo where number = " + number;
-				PreparedStatement statement = connection.prepareStatement(sql);
-				statement.execute();
-				statement.close();
-				connection.close();
-				out.println("账号为" + number + "的数据已删除!");
-			}catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	%>
 	<% request.setCharacterEncoding("utf-8"); %>
-	<% if(request.getParameter("username").equals("")==true) {
-			out.println("请输入账号后再登录！");
-		}
-		else if(new String(request.getParameter("userwd")).equals("")==true) {
-			out.println("请输入密码后再登陆！");
+	<% out.println(userDao.userLogin(logUser)); %>
+	<% 
+		String[] isUseCookies = request.getParameterValues("savesid"); 
+		if(isUseCookies!=null&&isUseCookies.length>0) {
+			String username = URLEncoder.encode(request.getParameter("username"),"utf-8");
+			Cookie usernameCookie = new Cookie("username",username);
+			usernameCookie.setMaxAge(86400);//设置最大生存周期为1天
+			Pattern pattern = Pattern.compile("[0-9]*");
+			if(pattern.matcher(username).matches()) {
+				response.addCookie(usernameCookie);
+			}			
 		}
 		else {
-			try {
-				Class.forName("com.mysql.cj.jdbc.Driver");
-				Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/information?serverTimezone=GMT","root","death65god");
-				String number = request.getParameter("username");
-				String passwd = new String(request.getParameter("userwd"));
-				String sql = "select * from demo where number = '" + number + "'";
-				PreparedStatement statement =  connection.prepareStatement(sql);
-				ResultSet rs = statement.executeQuery();
-				if(rs.next()) {
-					if(rs.getString("passwd").equals(passwd)) {
-						out.println("恭喜你，登陆成功！");
-					}
-					else {
-						out.println("您输入的密码不正确，请重新输入！");
+			Cookie[] cookies = request.getCookies();
+			if(cookies!=null&&cookies.length>0) {
+				for(Cookie c:cookies) {
+					if(c.getName().equals("username")||c.getName().equals("userwd")) {
+						c.setMaxAge(0);//设置Cookie失效
+						response.addCookie(c);//重新保存
 					}
 				}
-				else {
-					out.println("您输入的账号不存在，请注册后再登陆！");	
-				}
-				statement.execute();
-				statement.close();
-				connection.close();
-			} catch(Exception e) {
-				e.printStackTrace();
 			}
 		}
-	%>
+	%><br>
+	<a href="log.jsp">返回登录</a>
 </body>
 </html>
